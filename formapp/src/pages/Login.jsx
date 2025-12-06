@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function Login() {
   const handleLogin = () => {
-    window.location.href = 'http://localhost:5000/api/auth/airtable';
+    window.location.href = 'https://formapp-3hsh.onrender.com/api/auth/airtable';
   };
 
   return (

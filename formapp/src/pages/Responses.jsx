@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './Responses.css';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://formapp-3hsh.onrender.com/api';
 
 const Responses = () => {
   const { formId } = useParams();

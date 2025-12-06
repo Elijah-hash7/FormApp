@@ -16,7 +16,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: 'https://smart-formapp.vercel.app',
   credentials: true
 }));
 

@@ -118,7 +118,7 @@ router.get('/airtable/callback', async (req, res) => {
             { expiresIn: '7d' }
 
         );
-        res.redirect(`http://localhost:5173/dashboard?token=${token}`);
+        res.redirect(`https://smart-formapp.vercel.app/dashboard?token=${token}`);
     } catch (error) {
         console.error('OAuth error:', error.response?.data || error.message);
         res.status(500).send('Login failed');

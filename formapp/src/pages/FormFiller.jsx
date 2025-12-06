@@ -50,7 +50,7 @@ export default function FormFiller() {
     const loadForm = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`http://localhost:5000/api/forms/${formId}`);
+        const res = await fetch(`https://formapp-3hsh.onrender.com/api/forms/${formId}`);
         if (!res.ok) throw new Error(`Failed to load form: ${res.status}`);
 
         const data = await res.json();
@@ -79,7 +79,7 @@ export default function FormFiller() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:5000/api/responses', {
+      const res = await fetch('https://formapp-3hsh.onrender.com/api/responses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ formId, answers })
