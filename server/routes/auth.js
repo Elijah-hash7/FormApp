@@ -32,19 +32,19 @@ function generateCodeChallenge(verifier) {
 
 // redirect to airtable for user authenitication
 router.get('/auth/airtable', (req, res) => {
-
+    console.log('=== OAUTH START ===');
+    console.log('Client ID:', process.env.AIRTABLE_CLIENT_ID?.substring(0, 10) + '...');
+    console.log('Redirect URI:', process.env.AIRTABLE_REDIRECT_URI);
+    console.log('=== END ===');
+    
     const codeVerifier = generateCodeVerifier();
     const codeChallenge = generateCodeChallenge(codeVerifier);
     const state = generateRandomString(32);
 
-
     req.session.codeVerifier = codeVerifier;
     req.session.state = state;
 
-    
-
-
-    const authUrl = new URL('https://airtable.com/oauth2/v1/authorize')
+    const authUrl = new URL('https://airtable.com/oauth2/v1/authorize');
     authUrl.searchParams.append('client_id', process.env.AIRTABLE_CLIENT_ID);
     authUrl.searchParams.append('redirect_uri', process.env.AIRTABLE_REDIRECT_URI);
     authUrl.searchParams.append('response_type', 'code');
@@ -52,9 +52,11 @@ router.get('/auth/airtable', (req, res) => {
     authUrl.searchParams.append('state', state);
     authUrl.searchParams.append('code_challenge', codeChallenge);
     authUrl.searchParams.append('code_challenge_method', 'S256');
+    
+    console.log('Generated Airtable URL:', authUrl.toString());
+    
     res.redirect(authUrl.toString());
 });
-
 
 
 //redirect to callback to exchange code for tokens
@@ -63,12 +65,11 @@ router.get('/airtable/callback', async (req, res) => {
     if (!code) {
         return res.status(400).send('Authorization code not provided');
     }
-   try {
-        
+    
+    try {
         const credentials = Buffer.from(
             `${process.env.AIRTABLE_CLIENT_ID}:${process.env.AIRTABLE_CLIENT_SECRET}`
         ).toString('base64');
-        
         
         const tokenRes = await axios({
             method: 'post',
@@ -82,13 +83,8 @@ router.get('/airtable/callback', async (req, res) => {
                 redirect_uri: process.env.AIRTABLE_REDIRECT_URI,
                 code: code,
                 code_verifier: req.session.codeVerifier
-                
             }).toString()
         });
-
-        
-
-        
 
         const { access_token, refresh_token } = tokenRes.data;
 
@@ -116,16 +112,17 @@ router.get('/airtable/callback', async (req, res) => {
             { userId: user._id },
             process.env.JWT_SECRET || 'fallback-secret-key',
             { expiresIn: '7d' }
-
         );
-        res.redirect(`https://smart-formapp.vercel.app/dashboard?token=${token}`);
+        
+        // ✅ USE ENVIRONMENT VARIABLE
+        const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+        res.redirect(`${FRONTEND_URL}/dashboard?token=${token}`);
+        
     } catch (error) {
         console.error('OAuth error:', error.response?.data || error.message);
         res.status(500).send('Login failed');
     }
-
 });
-
 module.exports = router;
 
 
