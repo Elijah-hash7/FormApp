@@ -52,6 +52,11 @@ router.post('/', getCurrentUser, async (req, res) => {
         });
         await form.save();
 
+        console.log('✅✅✅ FORM SAVED SUCCESSFULLY!');
+        console.log('Form _id:', form._id);
+        console.log('Form saved to collection');
+
+
         res.status(201).json({
             id: form._id,
             airtableBaseId: form.airtableBaseId,
@@ -134,14 +139,14 @@ router.delete('/:formId', getCurrentUser, async (req, res) => {
 
         console.log(`🗑️ Deleting form ${formId} requested by user ${userId}`);
 
-        
+
         const form = await Form.findById(formId);
         if (!form) {
             console.log(`Form ${formId} not found`);
             return res.status(404).json({ error: 'Form not found' });
         }
 
-        
+
         if (form.ownerId.toString() !== userId.toString()) {
             console.log(`Permission denied: User ${userId} doesn't own form ${formId}`);
             return res.status(403).json({ error: 'You do not have permission to delete this form' });
@@ -149,11 +154,11 @@ router.delete('/:formId', getCurrentUser, async (req, res) => {
 
         console.log(`✅ User ${userId} has permission to delete form ${formId}`);
 
-        
+
         const responses = await Response.find({ formId: formId });
         console.log(`📊 Found ${responses.length} responses to delete`);
 
-        
+
         const ownerTokenInfo = {
             accessToken: form.ownerAccessToken,
             refreshToken: form.ownerRefreshToken
@@ -162,9 +167,11 @@ router.delete('/:formId', getCurrentUser, async (req, res) => {
         console.log('Form owner token available:', !!ownerTokenInfo.accessToken);
         console.log('Form owner refresh token available:', !!ownerTokenInfo.refreshToken);
 
-        
+
         let deletedAirtableCount = 0;
         let airtableErrors = [];
+
+        const formOwner = await User.findById(req.user._id);
 
         if (ownerTokenInfo.accessToken && responses.length > 0) {
             for (const resp of responses) {
@@ -175,7 +182,7 @@ router.delete('/:formId', getCurrentUser, async (req, res) => {
 
                 try {
                     await callAirtableAPI(
-                        ownerTokenInfo, 
+                        formOwner,
                         'delete',
                         `https://api.airtable.com/v0/${form.airtableBaseId}/${form.airtableTableId}/${resp.airtableRecordId}`
                     );
@@ -185,7 +192,7 @@ router.delete('/:formId', getCurrentUser, async (req, res) => {
                     const errorMsg = airtableError.response?.data?.error?.message || airtableError.message;
                     const statusCode = airtableError.response?.status;
 
-                    
+
                     if (statusCode === 404) {
                         console.log(`ℹ️ Airtable record ${resp.airtableRecordId} not found (already deleted)`);
                         deletedAirtableCount++; // Count as success
@@ -224,11 +231,11 @@ router.delete('/:formId', getCurrentUser, async (req, res) => {
         const softDeletedCount = updateResult.modifiedCount || 0;
         console.log(`📝 Soft-deleted ${softDeletedCount} responses locally`);
 
-        
+
         await Form.findByIdAndDelete(formId);
         console.log(`🗑️ Deleted form ${formId} from database`);
 
-        
+
         const response = {
             success: true,
             message: 'Form deleted successfully',
@@ -240,7 +247,7 @@ router.delete('/:formId', getCurrentUser, async (req, res) => {
             }
         };
 
-        
+
         if (airtableErrors.length > 0) {
             response.warnings = {
                 airtableErrors: airtableErrors.length,
@@ -276,7 +283,7 @@ router.post('/:formId/register-webhook', getCurrentUser, async (req, res) => {
             return res.status(404).json({ error: 'Form not found' });
         }
 
-        const ngrokUrl = req.body.ngrokUrl; 
+        const ngrokUrl = req.body.ngrokUrl;
 
         if (!ngrokUrl) {
             return res.status(400).json({ error: 'ngrokUrl is required' });

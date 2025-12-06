@@ -1,0 +1,367 @@
+/* Responses.css */
+
+/* Container */
+.responses-container {
+    min-height: 100vh;
+    background: #f5f5f5;
+  }
+  
+  /* Header */
+  .responses-header {
+    background: white;
+    padding: 20px 30px;
+    border-bottom: 2px solid #e0e0e0;
+    margin-bottom: 20px;
+  }
+  
+  .back-button {
+    padding: 10px 20px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 15px;
+    font-weight: bold;
+    font-size: 14px;
+    transition: background 0.2s;
+  }
+  
+  .back-button:hover {
+    background: #5a6268;
+  }
+  
+  .responses-title {
+    margin: 10px 0 5px;
+    font-size: 28px;
+  }
+  
+  .responses-subtitle {
+    margin: 0;
+    color: #666;
+    font-size: 16px;
+  }
+  
+  /* Content */
+  .responses-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px 40px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Empty State */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .empty-state h2 {
+    color: #666;
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+  
+  .empty-state p {
+    color: #999;
+    font-size: 16px;
+  }
+  
+  /* Table Wrapper */
+  .table-wrapper {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+    width: 100%;
+  }
+  
+  .table-responsive {
+    overflow-x: auto;
+    width: 100%;
+  }
+  
+  /* Table */
+  .responses-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+  }
+  
+  .responses-table thead {
+    background: #f8f9fa;
+  }
+  
+  .responses-table th {
+    padding: 15px;
+    border-bottom: 2px solid #dee2e6;
+    text-align: left;
+    font-weight: bold;
+    font-size: 14px;
+  }
+  
+  .responses-table th.actions-header {
+    text-align: center;
+  }
+  
+  .responses-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #dee2e6;
+    font-size: 14px;
+  }
+  
+  .responses-table tr:nth-child(even) {
+    background: #f8f9fa;
+  }
+  
+  .responses-table tr.editing {
+    background: #fff3cd !important;
+  }
+  
+  .responses-table tr.deleting {
+    opacity: 0.5;
+  }
+  
+  /* Date Cell */
+  .date-cell .date {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
+  .date-cell .time {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+  }
+  
+  /* Edit Input */
+  .edit-input {
+    width: 100%;
+    padding: 6px;
+    border: 2px solid #ffc107;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+  
+  .answer-text {
+    font-size: 14px;
+    word-break: break-word;
+  }
+  
+  /* Actions Cell */
+  .actions-cell {
+    text-align: center;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  /* Buttons */
+  .btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+    min-width: 80px;
+    transition: all 0.2s;
+  }
+  
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .btn-save {
+    background: #28a745;
+    color: white;
+  }
+  
+  .btn-save:hover:not(:disabled) {
+    background: #218838;
+  }
+  
+  .btn-cancel {
+    background: #6c757d;
+    color: white;
+  }
+  
+  .btn-cancel:hover:not(:disabled) {
+    background: #5a6268;
+  }
+  
+  .btn-edit {
+    background: #ffc107;
+    color: #000;
+  }
+  
+  .btn-edit:hover:not(:disabled) {
+    background: #e0a800;
+  }
+  
+  .btn-delete {
+    background: #dc3545;
+    color: white;
+  }
+  
+  .btn-delete:hover:not(:disabled) {
+    background: #c82333;
+  }
+  
+  /* Loading */
+  .loading-container {
+    text-align: center;
+    padding: 40px;
+    font-size: 18px;
+  }
+  
+  /* ============================================ */
+  /* RESPONSIVE DESIGN */
+  /* ============================================ */
+  
+  /* Tablets and below (768px) */
+  @media (max-width: 768px) {
+    .responses-header {
+      padding: 15px 20px;
+    }
+  
+    .responses-title {
+      font-size: 24px;
+    }
+  
+    .responses-subtitle {
+      font-size: 14px;
+    }
+  
+    .responses-content {
+      padding: 0 15px 30px;
+    }
+  
+    .responses-table {
+      min-width: 600px;
+      font-size: 13px;
+    }
+  
+    .responses-table th,
+    .responses-table td {
+      padding: 10px;
+    }
+  
+    .btn {
+      padding: 6px 12px;
+      font-size: 12px;
+      min-width: 70px;
+    }
+  
+    .action-buttons {
+      gap: 5px;
+    }
+  }
+  
+  /* Mobile phones (480px) */
+  @media (max-width: 480px) {
+    .responses-header {
+      padding: 12px 15px;
+    }
+  
+    .back-button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+  
+    .responses-title {
+      font-size: 20px;
+    }
+  
+    .responses-subtitle {
+      font-size: 13px;
+    }
+  
+    .responses-content {
+      padding: 0 10px 20px;
+    }
+  
+    .responses-table {
+      min-width: 500px;
+      font-size: 12px;
+    }
+  
+    .responses-table th,
+    .responses-table td {
+      padding: 8px 6px;
+    }
+  
+    .btn {
+      padding: 6px 10px;
+      font-size: 11px;
+      min-width: 60px;
+    }
+  
+    .action-buttons {
+      flex-direction: column;
+      gap: 4px;
+      align-items: stretch;
+    }
+  
+    .btn {
+      width: 100%;
+    }
+  
+    .date-cell .date {
+      font-size: 12px;
+    }
+  
+    .date-cell .time {
+      font-size: 11px;
+    }
+  
+    .edit-input {
+      font-size: 12px;
+      padding: 5px;
+    }
+  
+    .answer-text {
+      font-size: 12px;
+    }
+  
+    .empty-state {
+      padding: 40px 15px;
+    }
+  
+    .empty-state h2 {
+      font-size: 20px;
+    }
+  
+    .empty-state p {
+      font-size: 14px;
+    }
+  }
+  
+  /* Extra small devices (360px) */
+  @media (max-width: 360px) {
+    .responses-table {
+      min-width: 400px;
+      font-size: 11px;
+    }
+  
+    .responses-table th,
+    .responses-table td {
+      padding: 6px 4px;
+    }
+  
+    .btn {
+      font-size: 10px;
+      padding: 5px 8px;
+    }
+  }

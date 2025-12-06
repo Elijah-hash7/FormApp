@@ -6,7 +6,7 @@ const Response = require('../models/Response');
 const { getCurrentUser } = require('../middleware/authMiddleware');
 const { callAirtableAPI } = require('../utils/airtableAPI');
 
-router.post('/public', async (req, res) => {
+router.post('/', async (req, res) => {
     try {
         const { formId, answers } = req.body;
 
@@ -51,18 +51,24 @@ router.post('/public', async (req, res) => {
 
         console.log('📤 Sending to Airtable:', airtableFields);
 
-        // Get FRESH tokens from the actual user
+        // Get form owner
         const formOwner = await User.findById(form.ownerId);
         if (!formOwner) {
             console.error('❌ Form owner not found');
             return res.status(500).json({ error: 'Form owner not found' });
         }
 
-        console.log('✅ Using fresh tokens from owner:', formOwner.email);
+        console.log('✅ Using tokens from owner:', formOwner.email);
+        console.log('🔑 Token exists:', !!formOwner.accessToken);
+        console.log('🔑 Token length:', formOwner.accessToken?.length || 0);
 
+        // Try to save to Airtable with DETAILED error handling
         let airtableRecordId = null;
         try {
-            // Use the User object (not token object)
+            console.log('🌐 Making Airtable request...');
+            console.log('Base ID:', form.airtableBaseId);
+            console.log('Table ID:', form.airtableTableId);
+            
             const airtableRes = await callAirtableAPI(
                 formOwner,
                 'post',
@@ -74,10 +80,32 @@ router.post('/public', async (req, res) => {
             console.log('✅ Airtable record created:', airtableRecordId);
 
         } catch (airtableError) {
-            console.error('❌ Airtable error:', airtableError.response?.data || airtableError.message);
+            // DETAILED ERROR LOGGING
+            console.error('====== AIRTABLE ERROR DETAILS ======');
+            console.error('Error message:', airtableError.message);
+            console.error('Error name:', airtableError.name);
+            console.error('Error stack:', airtableError.stack);
+            
+            if (airtableError.response) {
+                console.error('Response status:', airtableError.response.status);
+                console.error('Response data:', JSON.stringify(airtableError.response.data, null, 2));
+                console.error('Response headers:', airtableError.response.headers);
+            } else if (airtableError.request) {
+                console.error('No response received!');
+                console.error('Request:', airtableError.request);
+            } else {
+                console.error('Error setting up request:', airtableError.message);
+            }
+            console.error('====================================');
+            
             return res.status(500).json({
                 error: 'Failed to save to Airtable',
-                details: airtableError.response?.data?.error?.message || airtableError.message
+                details: airtableError.response?.data?.error?.message || airtableError.message,
+                debugInfo: {
+                    hasResponse: !!airtableError.response,
+                    status: airtableError.response?.status,
+                    errorType: airtableError.name
+                }
             });
         }
 
@@ -155,14 +183,14 @@ router.delete('/:responseId', getCurrentUser, async (req, res) => {
             return res.status(403).json({ error: 'Permission denied' });
         }
 
-        // Get fresh user object
-        const formOwner = await User.findById(form.ownerId);
+        // ✅ GET FRESH USER OBJECT (not just req.user)
+        const formOwner = await User.findById(req.user._id);  // ← CHANGE THIS
         let airtableDeleted = false;
 
         if (formOwner && formOwner.accessToken && response.airtableRecordId && !response.deletedInAirtable) {
             try {
                 await callAirtableAPI(
-                    formOwner,
+                    formOwner,  // ← Use formOwner, not req.user
                     'delete',
                     `https://api.airtable.com/v0/${form.airtableBaseId}/${form.airtableTableId}/${response.airtableRecordId}`
                 );

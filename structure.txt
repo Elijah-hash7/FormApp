@@ -1,0 +1,14 @@
+## 📁 Project Structure
+
+YOUR-PROJECT/
+├── formapp/ # React frontend
+│ ├── src/
+│ ├── public/
+│ └── package.json
+├── server/ # Node.js backend
+│ ├── controllers/
+│ ├── models/
+│ ├── routes/
+| |── utils
+│ └── package.json
+└── README.md
