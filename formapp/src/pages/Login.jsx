@@ -2,6 +2,7 @@ import React from 'react';
 
 export default function Login() {
   const handleLogin = () => {
+    e.preventDefault();
     window.location.href = 'https://formapp-3hsh.onrender.com/api/auth/airtable';
   };
 
