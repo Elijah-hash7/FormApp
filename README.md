@@ -1,14 +1,68 @@
 # FormApp
 
-> Smart form builder that syncs responses to Airtable with conditional logic
+> A full-stack smart form builder that syncs responses to Airtable in real-time using OAuth 2.0, webhooks, and conditional logic.
 
-## 🚀 Quick Start
+Built to solve a real problem: collecting form responses and keeping them automatically in sync with Airtable — without manual exports or copy-pasting data.
+
+🔗 [Live Demo](https://your-demo-link.com) · [View Repo](https://github.com/Elijah-hash7/FormApp)
+
+---
+
+## What This Actually Does
+
+Most form tools either don't connect to Airtable at all, or only do one-way syncing. FormApp does bidirectional sync — when a record is deleted in Airtable, MongoDB flags it without losing the data (soft delete). When a user submits a form, the response lands in both MongoDB and Airtable simultaneously via webhooks.
+
+The conditional logic engine means questions show or hide dynamically based on previous answers — built from scratch, not a library.
+
+---
+
+## Technical Highlights
+
+**Airtable OAuth 2.0 Flow** — Full OAuth implementation with access tokens, refresh tokens, and scoped permissions (`data.records:read`, `data.records:write`, `schema.bases:read`). Not API key auth — proper OAuth like production apps use.
+
+**Real-time Webhook Sync** — Airtable fires webhooks to the backend on record changes. The server processes these events and updates MongoDB state accordingly. Uses ngrok for local tunneling during development.
+
+**Conditional Logic Engine** — Questions are rendered based on configurable rules with AND/OR logic and multiple operators (`equals`, `notEquals`, `contains`). Rules are stored per-question and evaluated client-side on each answer change.
+
+**Soft Delete Architecture** — Records deleted in Airtable are flagged in MongoDB with `deletedInAirtable: true` rather than hard-deleted. This preserves response history while keeping the UI clean.
+
+**JWT + Session Auth** — Dual auth layer: JWT for API requests, session-based auth for the OAuth callback flow.
+
+---
+
+## Architecture
+
+```
+Client (React + Vite)
+    ↓
+Express API (Node.js)
+    ↓              ↓
+MongoDB        Airtable API
+    ↑
+Airtable Webhooks (real-time sync)
+```
+
+---
+
+## Tech Stack
+
+| Layer | Tech |
+|---|---|
+| Frontend | React, React Router, Vite |
+| Backend | Node.js, Express |
+| Database | MongoDB |
+| Auth | JWT, Session, Airtable OAuth 2.0 |
+| Sync | Airtable Webhooks, ngrok |
+
+---
+
+## Quick Start
 
 ### Backend
 ```bash
 cd server
 npm install
-# Create .env file (see below)
+cp .env.example .env  # fill in your values
 npm run dev
 ```
 
@@ -19,9 +73,7 @@ npm install
 npm run dev
 ```
 
-## ⚙️ Environment Setup
-
-Create `server/.env`:
+### Environment Variables
 ```env
 MONGO_URI=mongodb://localhost:27017/formapp
 AIRTABLE_CLIENT_ID=your_client_id
@@ -30,133 +82,52 @@ AIRTABLE_REDIRECT_URI=http://localhost:5000/api/airtable/callback
 JWT_SECRET=your_secret_key
 SESSION_SECRET=your_session_secret
 PORT=5000
-# Webhook URL (use your ngrok URL when testing, or your deployed URL in production)
 WEBHOOK_BASE_URL=https://your-ngrok-url.ngrok-free.app
 ```
 
-## 🔐 Airtable OAuth Setup
+---
 
-1. Go to [Airtable Developer Portal](https://airtable.com/create/oauth)
-2. Create OAuth app with redirect URI: `http://localhost:5000/api/airtable/callback`
-3. Add scopes: `data.records:read`, `data.records:write`, `schema.bases:read`
-4. Copy Client ID & Secret to `.env`
-
-## 📊 Data Models
-
-**Form**: `name`, `ownerId`, `airtableBaseId`, `airtableTableId`, `questions[]`
-
-**Response**: `formId`, `airtableRecordId`, `answers{}`, `deletedInAirtable`, `deletedAt`
-
-**User**: `airtableUserId`, `email`, `accessToken`, `refreshToken`
-
-## 🎯 Conditional Logic
-
-Questions show/hide based on previous answers:
+## Conditional Logic Schema
 
 ```js
 conditionalRules: {
   logic: "AND",  // or "OR"
   conditions: [{
     questionKey: "role",
-    operator: "equals",  // equals, notEquals, contains
+    operator: "equals",  // equals | notEquals | contains
     value: "Engineer"
   }]
 }
 ```
 
-## 🔔 Webhooks Setup
+---
 
-### What is ngrok?
+## API Endpoints
 
-**ngrok** creates a public URL that tunnels to your local server. Airtable needs a public HTTPS URL to send webhooks, but your `localhost:5000` isn't accessible from the internet. ngrok bridges that gap.
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/forms` | Create a new form |
+| GET | `/api/forms/user/forms` | Get all forms for user |
+| POST | `/api/responses` | Submit a form response |
+| GET | `/api/responses/forms/:formId/responses` | Get responses for a form |
+| DELETE | `/api/responses/:responseId` | Soft delete a response |
+| POST | `/api/airtable/bases/:baseId/webhook` | Register Airtable webhook |
 
-**Think of it like:** Your local server is a house with no address. ngrok gives it a public address so Airtable can "mail" webhooks to it.
+---
 
-### Step-by-Step Webhook Setup:
-
-1. **Install ngrok:**
-   ```bash
-   # Option 1: Download from ngrok.com
-   # Option 2: Using npm
-   npm install -g ngrok
-   ```
-
-2. **Sign up for ngrok (FREE):**
-   - Go to: https://dashboard.ngrok.com/signup
-   - Sign up with email (free account works fine)
-   - After signup, go to: https://dashboard.ngrok.com/get-started/your-authtoken
-   - Copy your authtoken (looks like: `2abc123def456ghi789jkl012mno345pqr678`)
-
-3. **Authenticate ngrok:**
-   ```bash
-   ngrok config add-authtoken YOUR_AUTHTOKEN_HERE
-   ```
-   
-   Example:
-   ```bash
-   ngrok config add-authtoken 2abc123def456ghi789jkl012mno345pqr678
-   ```
-
-4. **Start your backend server:**
-   ```bash
-   cd server
-   npm run dev
-   # Server running on http://localhost:5000
-   ```
-
-5. **Start ngrok in a NEW terminal:**
-   ```bash
-   ngrok http 5000
-   ```
-   
-   You'll see something like:
-   ```
-   Forwarding  https://abc123.ngrok-free.app -> http://localhost:5000
-   ```
-   
-   **Copy the HTTPS URL** (the `https://abc123.ngrok-free.app` part)
-
-6. **Create webhook via API:**
-   ```bash
-   POST http://localhost:5000/api/airtable/bases/YOUR_BASE_ID/webhook
-   Headers: {
-     Authorization: Bearer YOUR_JWT_TOKEN,
-     Content-Type: application/json
-   }
-   Body: {
-     "notificationUrl": "https://abc123.ngrok-free.app/api/webhooks/airtable",
-     "tableId": "YOUR_TABLE_ID"
-   }
-   ```
-
-7. **Done!** The webhook is saved to your Form document. When records change in Airtable, they'll sync to MongoDB.
-
-**Note:** Keep ngrok running while testing. If you restart ngrok, you'll get a new URL and need to recreate the webhook.
-
-## 🗑️ Soft Delete
-
-- **Airtable**: Record deleted permanently
-- **MongoDB**: Flagged with `deletedInAirtable: true`
-- **UI**: Only shows `deletedInAirtable: false` responses
-
-## 📡 API Endpoints
-
-- `POST /api/forms` - Create form
-- `GET /api/forms/user/forms` - Get user's forms
-- `POST /api/responses` - Submit response
-- `GET /api/responses/forms/:formId/responses` - Get responses
-- `DELETE /api/responses/:responseId` - Delete response (flag record in mongoDb)
-- `POST /api/airtable/bases/:baseId/webhook` - Create webhook
-
-## 🛠 Tech Stack
-
-**Frontend**: React, React Router, Vite  
-**Backend**: Node.js, Express, MongoDB, Airtable API
-
-## 📸 Screenshots
+## Screenshots
 
 ![Authentication](./formapp/public/Screenshots/auth.png)
 ![Database](./formapp/public/Screenshots/Database.png)
-![](./formapp/public/Screenshots/Running.png)
-![server running](./formapp/public/Screenshots/server.png)
-![webhook](./formapp/public/Screenshots/Webhook.png)
+![Running](./formapp/public/Screenshots/Running.png)
+![Server](./formapp/public/Screenshots/server.png)
+![Webhook](./formapp/public/Screenshots/Webhook.png)
+
+---
+
+## What I Learned Building This
+
+- How OAuth 2.0 flows actually work end-to-end, not just theory
+- Designing webhook receivers that handle duplicate events gracefully
+- Why soft deletes matter in systems with external data sources
+- Structuring a Node.js backend for both REST and event-driven patterns
